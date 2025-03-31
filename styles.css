@@ -1,0 +1,100 @@
+/* Styles généraux */
+body {
+    font-family: 'Arial', sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #f0f7f4; /* Couleur de fond douce */
+    color: #2c3e50; /* Couleur principale du texte */
+}
+
+/* En-tête */
+header {
+    background-color: #27ae60; /* Vert élégant */
+    color: white;
+    text-align: center;
+    padding: 2rem;
+    margin-bottom: 2rem;
+}
+
+header h1 {
+    margin: 0;
+    font-size: 2rem;
+}
+
+header p {
+    margin-top: 0.5rem;
+    font-size: 1.2rem;
+}
+
+/* Conteneur principal des événements */
+main {
+    padding: 1rem;
+}
+
+/* Style pour les groupes de dates */
+.date-group {
+    margin-bottom: 2rem; /* Espacement entre les groupes */
+}
+
+.date-group h2 {
+    background-color: #27ae60; /* Couleur de fond pour la date */
+    color: white; /* Couleur du texte */
+    padding: 1rem; /* Espacement interne */
+    border-radius: 8px; /* Coins arrondis */
+    text-align: center; /* Centrer le texte */
+    margin-bottom: 1rem; /* Espacement entre la date et les événements */
+}
+
+/* Style pour chaque événement */
+.event {
+    background-color: white;
+    border-radius: 12px;
+    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.1); /* Ombre élégante */
+    margin: 1.5rem auto;
+    padding: 1.5rem;
+    max-width: 800px; /* Largeur maximale pour éviter un affichage trop large */
+}
+
+.event h3 {
+    color: #27ae60; /* Couleur des titres des événements par défaut */
+}
+
+.event h3.red {
+    color: red; /* Couleur rouge pour les titres contenant "Anniversaire" */
+}
+
+.event p {
+    margin-bottom: 0.5rem; /* Espacement entre les paragraphes */
+}
+
+/* Style pour la date de création (discrète) */
+.creation-date {
+    font-size: 0.8em; /* Taille réduite pour être discrète */
+    color: #666; /* Gris clair pour moins d'importance visuelle */
+    font-style: italic; /* Italique pour différencier cette information */
+}
+
+/* Style pour les erreurs */
+.error {
+    background-color: #ffe6e6; /* Fond rouge clair pour signaler une erreur */
+    border: 2px solid #ff4444; /* Bordure rouge vif */
+    border-radius: 8px;
+    color: #cc0000; /* Texte rouge foncé pour les erreurs */
+    padding: 1.5rem;
+    margin: 2rem auto;
+    max-width: 800px;
+}
+
+/* Responsive design pour petits écrans (mobile) */
+@media (max-width: 600px) {
+    .event {
+        margin: 1rem;
+        padding: 1rem;
+        font-size: 0.9rem; /* Réduction de la taille du texte sur mobile */
+    }
+
+    .date-group h2 {
+        font-size: 1.2rem; /* Réduction de la taille des dates sur mobile */
+        padding: 0.8rem; /* Ajustement du padding pour mobile */
+    }
+}
