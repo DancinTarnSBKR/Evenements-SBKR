@@ -3,7 +3,7 @@ body {
     font-family: 'Arial', sans-serif;
     margin: 0;
     padding: 0;
-    background-color: #f0f7f4; /* Couleur d'origine, presque blanche */
+    background-color: #f0f7f4; /* Couleur de fond douce */
     color: #2c3e50; /* Couleur principale du texte */
 }
 
@@ -33,6 +33,23 @@ header p {
     font-size: 1.2rem;
 }
 
+/* Conteneur pour rendre l'iframe responsive */
+.iframe-container {
+    position: relative;
+    width: 100%;
+    padding-bottom: 75%; /* Ratio d'aspect 4:3 (hauteur:largeur) */
+    height: 0;
+    overflow: hidden;
+}
+
+.iframe-container iframe {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+}
+
 /* Conteneur principal des événements */
 main {
     padding: 1rem;
@@ -41,8 +58,9 @@ main {
 /* Style pour les groupes de dates */
 .date-group {
     margin-bottom: 2rem; /* Espacement entre les groupes */
-    background-color: transparent; /* Fond transparent */
-    padding: 0; /* Supprimer l'espacement interne */
+    background-color: #408080; /* Vert turquoise foncé */
+    padding: 1rem; /* Ajout d'un espacement interne */
+    border-radius: 8px; /* Coins arrondis */
 }
 
 .date-group h2 {
