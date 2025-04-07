@@ -152,7 +152,8 @@ async function loadEvents() {
                             </h3>
                             <p>🗓️ Début : ${debutDateFormatted}</p>
                             <p>🏁 Fin : ${formatDateTime(parseFrenchDate(event.Fin))}</p>
-                            <p>📍 Lieu : ${event.VILLE || "Non spécifié"}</p>
+                            <p>📍 Ville : ${event.VILLE || "Non spécifié"}</p>
+                            <p>${event.Lieu || "Non spécifié"}</p>
                             <p>${event.Description || "Pas de description disponible."}</p>
                             <p class="creation-date">
                                 <i>Créé le : ${creationDateFormatted} par ${creatorName}</i>
