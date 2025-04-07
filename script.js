@@ -1,5 +1,3 @@
-const sheetUrl = "https://api.allorigins.win/raw?url=" + encodeURIComponent( "https://docs.google.com/spreadsheets/d/e/2PACX-1vRQfL6xOYvzpcDkFOcEwg_qE1mkP_4H6uq7tPSNAHg0XQIhT720m-lY6bFl7SQ2TUwYT2sxaiMkOOum/pub?output=csv" );
-
 // Fonction pour nettoyer une chaîne de texte
 function cleanString(str) {
     return str ? str.trim() : ""; // Supprimer les espaces avant/après et gérer les valeurs nulles/undefined
@@ -65,6 +63,11 @@ function formatDateTime(date) {
     const formattedDate = date.toLocaleDateString("fr-FR", options);
     return formattedDate.charAt(0).toUpperCase() + formattedDate.slice(1); // Capitaliser la première lettre
 }
+
+// URL du fichier CSV
+const sheetUrl = "https://api.allorigins.win/raw?url=" + encodeURIComponent(
+    "https://docs.google.com/spreadsheets/d/e/2PACX-1vRQfL6xOYvzpcDkFOcEwg_qE1mkP_4H6uq7tPSNAHg0XQIhT720m-lY6bFl7SQ2TUwYT2sxaiMkOOum/pub?output=csv"
+);
 
 // Fonction principale de chargement des événements
 async function loadEvents() {
@@ -149,7 +152,7 @@ async function loadEvents() {
                             </h3>
                             <p>🗓️ Début : ${debutDateFormatted}</p>
                             <p>🏁 Fin : ${formatDateTime(parseFrenchDate(event.Fin))}</p>
-                            <p>📍 Lieu : ${event.Lieu || "Non spécifié"}</p>
+                            <p>📍 Lieu : ${event.VILLE || "Non spécifié"}</p>
                             <p>${event.Description || "Pas de description disponible."}</p>
                             <p class="creation-date">
                                 <i>Créé le : ${creationDateFormatted} par ${creatorName}</i>
@@ -175,4 +178,4 @@ async function loadEvents() {
 }
 
 // Lancer le chargement au démarrage
-loadEvents()
+loadEvents();
