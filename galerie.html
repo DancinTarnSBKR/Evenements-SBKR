@@ -12,7 +12,7 @@
     </div>
     <script src="https://apis.google.com/js/api.js"></script>
     <script>
-        const apiKey = "AIzaSyA07yDg5gBmZYL_sPr0dmGscpPNaWImYAA";
+        const apiKey = "AIzaSyAqs84-w4P17df0qHxvmUSYT1AtNBfZAjw";
         const folderId = "1T2Caaxpm-WIckMHbGz3cx65NRsT3sMvt";
         const correctPassword = "81";
 
@@ -58,6 +58,15 @@
                         img.src = imgUrl;
                         img.style.maxWidth = '200px';
                         img.style.margin = '10px';
+
+                        img.onload = function() {
+                            console.log("Image chargée avec succès:", file.name);
+                        };
+
+                        img.onerror = function() {
+                            console.error("Erreur lors du chargement de l'image:", file.name);
+                        };
+
                         document.getElementById('images').appendChild(img);
                     });
                 } else {
