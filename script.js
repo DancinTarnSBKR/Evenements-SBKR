@@ -1,184 +1,159 @@
-// script.js
-// Fonction pour nettoyer une chaîne de texte
+// script.js - Correction de l'affichage des liens Google Drive
 function cleanString(str) {
-    return str ? str.trim() : ""; // Supprimer les espaces avant/après et gérer les valeurs nulles/undefined
+    return str ? str.trim() : "";
 }
 
-// Fonction pour convertir une date au format français DD/MM/YYYY HH:mm:ss
 function parseFrenchDate(dateString) {
     if (!dateString || typeof dateString !== "string") return null;
-
     const cleanDate = cleanString(dateString);
-
-    // Vérifier si le format est français (DD/MM/YYYY HH:mm:ss)
     const isFrenchFormat = /^\d{1,2}\/\d{1,2}\/\d{4}/.test(cleanDate);
+
     if (isFrenchFormat) {
         const [day, month, yearAndTime] = cleanDate.split("/");
         const [year, time] = yearAndTime.split(" ");
         return new Date(
-            `${year}-${month.padStart(2, "0")}-${day.padStart(2, "0")}T${time || "00:00:00"
-            }`
+            `${year}-${month.padStart(2, "0")}-${day.padStart(2, "0")}T${time || "00:00:00"}`
         );
     }
-
-    // Retourner null si le format est inconnu
     return null;
 }
 
-// Fonction pour normaliser une date (ignorer l'heure)
 function normalizeDate(date) {
     if (!date) return null;
-    // Normalisation : conserver uniquement AAAA-MM-JJ
     return new Date(date.getFullYear(), date.getMonth(), date.getDate());
 }
 
-// Fonction pour formater une date en français (uniquement la date)
 function formatDateOnly(date) {
     if (!date) return "Non spécifié";
-
-    const options = {
-        weekday: "long",
-        day: "numeric",
-        month: "long",
-        year: "numeric",
-    };
-
-    const formattedDate = date.toLocaleDateString("fr-FR", options);
-    return formattedDate.charAt(0).toUpperCase() + formattedDate.slice(1); // Capitaliser la première lettre
+    const options = { weekday: "long", day: "numeric", month: "long", year: "numeric" };
+    return date.toLocaleDateString("fr-FR", options).replace(/^\w/, c => c.toUpperCase());
 }
 
-// Fonction pour formater une date complète (date et heure)
 function formatDateTime(date) {
     if (!date) return "Non spécifié";
-
-    const options = {
-        weekday: "long",
-        day: "numeric",
-        month: "long",
-        year: "numeric",
-        hour: "2-digit",
-        minute: "2-digit",
-    };
-
-    const formattedDate = date.toLocaleDateString("fr-FR", options);
-    return formattedDate.charAt(0).toUpperCase() + formattedDate.slice(1); // Capitaliser la première lettre
+    const options = { weekday: "long", day: "numeric", month: "long", year: "numeric", hour: "2-digit", minute: "2-digit" };
+    return date.toLocaleDateString("fr-FR", options).replace(/^\w/, c => c.toUpperCase());
 }
 
-// Fonction pour générer un lien Google Maps
 function generateGoogleMapsLink(address) {
-    if (!address) return "Adresse non spécifiée";
+    if (!address) return "";
     const encodedAddress = encodeURIComponent(address.trim());
     return `<a href="https://www.google.com/maps/search/?api=1&query=${encodedAddress}" target="_blank" class="maps-link">📍 Voir sur Google Maps</a>`;
 }
 
-// URL du fichier CSV
+// Nouvelle fonction : Extraction des liens Google Drive
+function extractDriveLinks(text) {
+    if (!text) return [];
+    const driveRegex = /<a href="https:\/\/drive\.google\.com\/[^\s]+|https:\/\/docs\.google\.com\/[^\s]+[^\s]+<\/a>/g;
+    return [...new Set(text.match(driveRegex) || [])]; // Élimine les doublons
+}
+
+function formatDriveLink(linkHTML) {
+    // Utiliser un élément temporaire pour parser le HTML
+    const tempDiv = document.createElement('div');
+    tempDiv.innerHTML = linkHTML;
+
+    // Extraire le lien et le texte du lien
+    const linkElement = tempDiv.querySelector('a');
+
+    if (!linkElement) return ''; // Retourner vide si pas de lien
+
+    const link = linkElement.href; // URL du lien
+    const text = linkElement.textContent || link; // Texte du lien (ou URL si vide)
+
+    const icon = link.includes('/document/') ? '📄' :
+        link.includes('/spreadsheets/') ? '📊' :
+            link.includes('/presentation/') ? '🖥️' : '📁';
+
+    return `<div class="drive-link"><a href="${link}" target="_blank">${icon} ${text}</a></div>`;
+}
+
+// Définir sheetUrl en dehors de loadEvents
 const sheetUrl = "https://api.allorigins.win/raw?url=" + encodeURIComponent(
     "https://docs.google.com/spreadsheets/d/e/2PACX-1vRQfL6xOYvzpcDkFOcEwg_qE1mkP_4H6uq7tPSNAHg0XQIhT720m-lY6bFl7SQ2TUwYT2sxaiMkOOum/pub?output=csv"
 );
 
-// Fonction principale de chargement des événements
 async function loadEvents() {
     try {
         const response = await fetch(sheetUrl);
-        if (!response.ok) {
-            throw new Error(`Erreur HTTP : ${response.status} ${response.statusText}`);
-        }
+        if (!response.ok) throw new Error(`Erreur HTTP : ${response.status}`);
 
         const csvData = await response.text();
 
-        // Utiliser Papa.parse pour analyser le CSV
         Papa.parse(csvData, {
             header: true,
             skipEmptyLines: true,
-            complete(results) {
+            complete: (results) => {
                 const eventsContainer = document.getElementById("events");
-                eventsContainer.innerHTML = ""; // Vider le contenu initial
+                eventsContainer.innerHTML = "";
 
-                // Regrouper les événements par date de début
-                const groupedEvents = {};
-                results.data.forEach((event) => {
-                    const debutDate = parseFrenchDate(event.Début);
-                    const normalizedDate = normalizeDate(debutDate); // Normaliser la date
-                    const formattedDateOnly = formatDateOnly(normalizedDate); // Formater la date normalisée
+                // Groupement par date
+                const groupedEvents = results.data.reduce((acc, event) => {
+                    const dateKey = formatDateOnly(normalizeDate(parseFrenchDate(event.Début)));
+                    if (!acc[dateKey]) acc[dateKey] = [];
+                    acc[dateKey].push(event);
+                    return acc;
+                }, {});
 
-                    if (!groupedEvents[formattedDateOnly]) {
-                        groupedEvents[formattedDateOnly] = [];
-                    }
-                    groupedEvents[formattedDateOnly].push(event);
-                });
-
-                // Afficher les groupes d'événements
-                for (const [date, events] of Object.entries(groupedEvents)) {
+                // Affichage
+                Object.entries(groupedEvents).forEach(([date, events]) => {
                     const dateDiv = document.createElement("div");
-                    dateDiv.classList.add("date-group");
+                    dateDiv.className = "date-group";
                     dateDiv.innerHTML = `<h2>${date}</h2>`;
-                    eventsContainer.appendChild(dateDiv);
 
-                    // Trier les événements par date de création
                     events.sort((a, b) => {
-                        const dateCreationA = parseFrenchDate(a["Date de création"]);
-                        const dateCreationB = parseFrenchDate(b["Date de création"]);
-
-                        if (dateCreationA && dateCreationB) {
-                            return dateCreationA.getTime() - dateCreationB.getTime();
-                        } else if (dateCreationA) {
-                            return -1;
-                        } else if (dateCreationB) {
-                            return 1;
-                        } else {
-                            return 0;
-                        }
+                        const dateA = parseFrenchDate(a["Date de création"])?.getTime() || 0;
+                        const dateB = parseFrenchDate(b["Date de création"])?.getTime() || 0;
+                        return dateA - dateB;
                     });
 
                     events.forEach((event) => {
-                        const creationDateFormatted = event["Date de création"]
-                            ? formatDateTime(parseFrenchDate(event["Date de création"]))
-                            : "Non spécifié";
-
-                        const creatorName = event["Désignation"] || "Non spécifié";
-                        const debutDateFormatted = event.Début
-                            ? formatDateTime(parseFrenchDate(event.Début))
-                            : "Non spécifié";
-
-                        // Générer le lien Google Maps
-                        const mapsLink = generateGoogleMapsLink(event.Lieu || event.VILLE);
+                        // Extraction des liens et suppression de la description
+                        let description = event.Description || "";
+                        const driveLinks = extractDriveLinks(description);
+                        driveLinks.forEach(link => {
+                             description = description.replace(link + "<br><br>", "");
+                        });
+                       description = description.replace(/<a[^>]*>|<\/a>|Affiche/g, "");
+                         description = description.replace(/(\r\n|\n|\r)/gm, "");
+                        const driveLinksHTML = driveLinks.map(formatDriveLink).join('');
 
                         const eventDiv = document.createElement("div");
-                        eventDiv.classList.add("event");
-
+                        eventDiv.className = "event";
                         eventDiv.innerHTML = `
-                          <h3 class="${event.Titre.includes("Anniversaire") ? "red" : ""}">
-                              ${event.Titre || "Événement sans titre"}
-                          </h3>
-                          <p>🗓️ Début : ${debutDateFormatted}</p>
-                          <p>🏁 Fin : ${formatDateTime(parseFrenchDate(event.Fin))}</p>
-                          <p>📍 Ville : ${event.VILLE || "Non spécifié"}</p>
-                          <p>${event.Lieu || "Non spécifié"} ${mapsLink}</p>
-                          <p>${event.Description || "Pas de description disponible."}</p>
-                          <p class="creation-date">
-                              <i>Créé le : ${creationDateFormatted} par ${creatorName}</i>
-                          </p>
-                      `;
+                            <h3 class="${event.Titre?.includes("Anniversaire") ? "red" : ""}">
+                                ${event.Titre || "Événement sans titre"}
+                            </h3>
+                            <p>🗓️ Début : ${formatDateTime(parseFrenchDate(event.Début))}</p>
+                            ${event.Fin ? `<p>🏁 Fin : ${formatDateTime(parseFrenchDate(event.Fin))}</p>` : ''}
+                            <p>📍 ${event.VILLE || ''} ${event.Lieu ? `(${event.Lieu})` : ''} ${generateGoogleMapsLink(event.Lieu || event.VILLE)}</p>
+                            <div class="description">${description || "Pas de description"}</div>
+                            ${driveLinksHTML ? `<div class="drive-links">${driveLinksHTML}</div>` : ''}
+                            <p class="meta">
+                                <i>Créé le ${formatDateTime(parseFrenchDate(event["Date de création"]))} 
+                                par ${event["Désignation"] || "anonyme"}</i>
+                            </p>
+                        `;
                         dateDiv.appendChild(eventDiv);
                     });
-                }
+
+                    eventsContainer.appendChild(dateDiv);
+                });
             },
-            error(error) {
-                throw new Error(`Erreur d'analyse : ${error.message}`);
-            },
+            error: (error) => {
+                throw new Error(`Erreur CSV : ${error.message}`);
+            }
         });
     } catch (error) {
         console.error("Erreur :", error);
         document.getElementById("events").innerHTML = `
             <div class="error">
-                ❌ Erreur de chargement : ${error.message}<br>
-                <small>Vérifiez la connexion internet ou contactez l'administrateur</small>
+                ❌ Erreur : ${error.message}<br>
+                <button onclick="loadEvents()">Réessayer</button>
             </div>
         `;
     }
 }
 
-// Lancer le chargement au démarrage
-document.addEventListener('DOMContentLoaded', function () {
-    loadEvents();
-});
+// Initialisation
+document.addEventListener('DOMContentLoaded', loadEvents);
