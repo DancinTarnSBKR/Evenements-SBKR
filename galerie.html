@@ -75,6 +75,7 @@
                 }
             }, function (err) {
                 console.error("Erreur lors de la récupération des fichiers", err);
+                console.error("Objet erreur complet:", err);
                 document.getElementById('images').innerText = 'Erreur lors de la récupération des fichiers';
             });
         }
