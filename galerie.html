@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Affichage des images Google Drive</title>
+</head>
+<body>
+    <input type="password" id="password" placeholder="Entrez le code d'accès">
+    <button onclick="checkPassword()">Accéder</button>
+    <div id="content" style="display:none;">
+        <h2>Images du Google Drive</h2>
+        <div id="images"></div>
+    </div>
+    <script src="https://apis.google.com/js/api.js"></script>
+    <script>
+        const apiKey = "AIzaSyAqs84-w4P17df0qHxvmUSYT1AtNBfZAjw";
+        const folderId = "1T2Caaxpm-WIckMHbGz3cx65NRsT3sMvt";
+        const correctPassword = "81";
+
+        document.getElementById("password").addEventListener("keyup", function(event) {
+            if (event.key === "Enter") {
+                checkPassword();
+            }
+        });
+
+        function checkPassword() {
+            const password = document.getElementById("password").value;
+            if (password === correctPassword) {
+                document.getElementById("content").style.display = "block";
+                initClient();
+            } else {
+                alert("Code incorrect. Veuillez réessayer.");
+            }
+        }
+
+        function initClient() {
+            gapi.client.init({
+                apiKey: apiKey,
+                discoveryDocs: ["https://www.googleapis.com/discovery/v1/apis/drive/v3/rest"],
+            }).then(function () {
+                console.log("API Google initialisée avec succès");
+                listFiles();
+            }, function (err) {
+                console.error("Erreur lors de l'initialisation de l'API Google", err);
+            });
+        }
+
+        function listFiles() {
+            gapi.client.drive.files.list({
+                q: `'${folderId}' in parents and mimeType contains 'image/'`,
+                fields: 'files(id, name, webViewLink, thumbnailLink)', // Ajout de thumbnailLink
+            }).then(function (response) {
+                const files = response.result.files;
+                if (files && files.length > 0) {
+                    files.forEach(function (file) {
+                        console.log('Nom du fichier :', file.name);
+                        console.log('URL du fichier :', file.webViewLink);
+                        let imgUrl = file.webViewLink; // URL par défaut
+                        if (file.thumbnailLink) {
+                            imgUrl = file.thumbnailLink; // Utiliser la vignette si disponible
+                        }
+                        const img = document.createElement('img');
+                        img.src = imgUrl;
+                        img.style.maxWidth = '200px';
+                        img.style.margin = '10px';
+                        document.getElementById('images').appendChild(img);
+                    });
+                } else {
+                    console.log('Aucun fichier trouvé dans le dossier');
+                    document.getElementById('images').innerText = 'Aucun fichier trouvé dans le dossier';
+                }
+            }, function (err) {
+                console.error("Erreur lors de la récupération des fichiers", err);
+                document.getElementById('images').innerText = 'Erreur lors de la récupération des fichiers';
+            });
+        }
+        gapi.load('client:auth2', function() {});
+    </script>
+</body>
+</html>
