@@ -47,17 +47,13 @@
         function listFiles() {
             gapi.client.drive.files.list({
                 q: `'${folderId}' in parents and mimeType contains 'image/'`,
-                fields: 'files(id, name, webViewLink, thumbnailLink)', // Ajout de thumbnailLink
+                fields: 'files(id, name)',
             }).then(function (response) {
                 const files = response.result.files;
                 if (files && files.length > 0) {
                     files.forEach(function (file) {
                         console.log('Nom du fichier :', file.name);
-                        console.log('URL du fichier :', file.webViewLink);
-                        let imgUrl = file.webViewLink; // URL par défaut
-                        if (file.thumbnailLink) {
-                            imgUrl = file.thumbnailLink; // Utiliser la vignette si disponible
-                        }
+                        const imgUrl = `https://drive.google.com/uc?id=${file.id}`;
                         const img = document.createElement('img');
                         img.src = imgUrl;
                         img.style.maxWidth = '200px';
