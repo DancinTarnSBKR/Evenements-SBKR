@@ -5,6 +5,7 @@ body {
     padding: 0;
     background-color: #f0f7f4;
     color: #2c3e50;
+    line-height: 1.6;
 }
 
 /* En-tête */
@@ -61,6 +62,7 @@ main {
     background-color: #408080;
     padding: 1rem;
     border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
 }
 
 .date-group h2 {
@@ -68,91 +70,79 @@ main {
     color: white;
     padding: 0.5rem;
     text-align: center;
-    margin-bottom: 1rem;
-    border-radius: 8px;
+    margin: -1rem -1rem 1rem -1rem;
+    border-radius: 8px 8px 0 0;
 }
 
 /* Événements */
 .event {
     background-color: white;
-    border-radius: 12px;
+    border-radius: 8px;
     box-shadow: 0 3px 6px rgba(0, 0, 0, 0.1);
     margin: 1.5rem auto;
     padding: 1.5rem;
     max-width: 800px;
+    transition: transform 0.3s ease;
+}
+
+.event:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
 }
 
 .event h3 {
     color: #27ae60;
+    margin-top: 0;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 0.5rem;
 }
 
 .event h3.red {
-    color: red;
+    color: #e74c3c;
 }
 
 .event p {
-    margin-bottom: 0.5rem;
+    margin-bottom: 0.8rem;
 }
 
-/* Nouveau style pour les liens Maps */
+/* Liens Google Maps */
 .maps-link {
     display: inline-block;
     color: #1a73e8;
     text-decoration: none;
     font-weight: bold;
     margin-left: 8px;
-    padding: 2px 6px;
+    padding: 4px 8px;
     background-color: #f8f9fa;
     border-radius: 4px;
     border: 1px solid #dadce0;
-    transition: all 0.3s ease;
+    transition: all 0.2s ease;
+    font-size: 0.9em;
 }
 
 .maps-link:hover {
-    text-decoration: underline;
+    text-decoration: none;
     background-color: #e8f0fe;
     border-color: #d2e3fc;
 }
 
-.maps-link:active {
-    background-color: #d2e3fc;
+/* Liens Google Drive */
+.drive-links {
+    margin: 1rem 0;
+    padding: 0.8rem;
+    background-color: #f8f9fa;
+    border-radius: 6px;
+    border-left: 4px solid #4285f4;
 }
 
-/* Date de création */
-.creation-date {
-    font-size: 0.8em;
-    color: #666;
-    font-style: italic;
+.drive-link {
+    margin: 0.5rem 0;
+    padding: 0.3rem 0;
 }
 
-/* Erreurs */
-.error {
-    background-color: #ffe6e6;
-    border: 2px solid #ff4444;
-    border-radius: 8px;
-    color: #cc0000;
-    padding: 1.5rem;
-    margin: 2rem auto;
-    max-width: 800px;
-}
-
-/* Responsive */
-@media (max-width: 600px) {
-    .event {
-        margin: 1rem;
-        padding: 1rem;
-        font-size: 0.9rem;
-    }
-
-    .date-group h2 {
-        font-size: 1.2rem;
-        padding: 0.8rem;
-    }
-    
-    /* Adaptation mobile pour les liens */
-    .maps-link {
-        display: block;
-        margin-left: 0;
-        margin-top: 5px;
-    }
-}
+.drive-link a {
+    color: #1a73e8;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap:
