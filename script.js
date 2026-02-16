@@ -1,4 +1,15 @@
 // ============================
+// CONFIGURATION
+// ============================
+
+// 👉 Mets ici TON URL Google Sheets publié en CSV
+const sheetUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRQfL6xOYvzpcDkFOcEwg_qE1mkP_4H6uq7tPSNAHg0XQIhT720m-lY6bFl7SQ2TUwYT2sxaiMkOOum/pub?output=csv";
+
+let allEvents = [];
+let currentMonth = new Date().getMonth();
+let currentYear = new Date().getFullYear();
+
+// ============================
 // OUTILS
 // ============================
 
@@ -7,42 +18,21 @@ function cleanString(str) {
 }
 
 function parseFrenchDate(dateString) {
-    if (!dateString || typeof dateString !== "string") return null;
+    if (!dateString) return null;
 
-    const cleanDate = cleanString(dateString);
-    const match = cleanDate.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})(?:\s(\d{2}):(\d{2})(?::(\d{2}))?)?/);
-
+    const match = dateString.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})(?:\s(\d{2}):(\d{2}))?/);
     if (!match) return null;
 
-    const [, day, month, year, hour = "00", minute = "00", second = "00"] = match;
+    const [, day, month, year, hour = "00", minute = "00"] = match;
 
-    const date = new Date(year, month - 1, day, hour, minute, second);
-
-    return isNaN(date.getTime()) ? null : date;
-}
-
-function normalizeDate(date) {
-    if (!date) return null;
-    return new Date(date.getFullYear(), date.getMonth(), date.getDate());
-}
-
-function formatDateOnly(date) {
-    if (!date) return "Non spécifié";
-
-    const formatted = date.toLocaleDateString("fr-FR", {
-        weekday: "long",
-        day: "numeric",
-        month: "long",
-        year: "numeric"
-    });
-
-    return formatted.charAt(0).toUpperCase() + formatted.slice(1);
+    const date = new Date(year, month - 1, day, hour, minute);
+    return isNaN(date) ? null : date;
 }
 
 function formatDateTime(date) {
     if (!date) return "Non spécifié";
 
-    const formatted = date.toLocaleString("fr-FR", {
+    return date.toLocaleString("fr-FR", {
         weekday: "long",
         day: "numeric",
         month: "long",
@@ -50,149 +40,127 @@ function formatDateTime(date) {
         hour: "2-digit",
         minute: "2-digit"
     });
-
-    return formatted.charAt(0).toUpperCase() + formatted.slice(1);
 }
 
 function generateGoogleMapsLink(address) {
-    const cleanAddress = cleanString(address);
-    if (!cleanAddress) return "";
+    const clean = cleanString(address);
+    if (!clean) return "";
 
-    const encoded = encodeURIComponent(cleanAddress);
+    const encoded = encodeURIComponent(clean);
     return `<a href="https://www.google.com/maps/search/?api=1&query=${encoded}" 
             target="_blank" 
             class="maps-link">📍 Voir sur Google Maps</a>`;
 }
 
 // ============================
-// CONFIG
+// AFFICHAGE DU MOIS
 // ============================
 
-// ⚠️ Utilise DIRECTEMENT l’URL CSV publiée
-const sheetUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRQfL6xOYvzpcDkFOcEwg_qE1mkP_4H6uq7tPSNAHg0XQIhT720m-lY6bFl7SQ2TUwYT2sxaiMkOOum/pub?output=csv";
+function renderMonth(month, year) {
+
+    const container = document.getElementById("events");
+    container.innerHTML = "";
+
+    const monthLabel = new Date(year, month).toLocaleDateString("fr-FR", {
+        month: "long",
+        year: "numeric"
+    });
+
+    document.getElementById("currentMonthLabel").textContent =
+        monthLabel.charAt(0).toUpperCase() + monthLabel.slice(1);
+
+    const filtered = allEvents.filter(event =>
+        event.parsedDate &&
+        event.parsedDate.getMonth() === month &&
+        event.parsedDate.getFullYear() === year
+    );
+
+    if (filtered.length === 0) {
+        container.innerHTML = "<p>Aucun événement ce mois-ci.</p>";
+        return;
+    }
+
+    filtered
+        .sort((a, b) => a.parsedDate - b.parsedDate)
+        .forEach(event => {
+
+            const div = document.createElement("div");
+            div.classList.add("event");
+
+            const title = cleanString(event.Titre) || "Événement sans titre";
+            const isBirthday = title.includes("Anniversaire");
+
+            div.innerHTML = `
+                <h3 class="${isBirthday ? "red" : ""}">${title}</h3>
+                <p>🗓️ ${formatDateTime(event.parsedDate)}</p>
+                <p>🏁 Fin : ${formatDateTime(parseFrenchDate(event.Fin))}</p>
+                <p>📍 Ville : ${cleanString(event.VILLE) || "Non spécifié"}</p>
+                <p>${cleanString(event.Lieu)}</p>
+                ${generateGoogleMapsLink(event.Lieu || event.VILLE)}
+                <p>${cleanString(event.Description) || ""}</p>
+                <p><i>Créé le : ${formatDateTime(parseFrenchDate(event["Date de création"]))}
+                par ${cleanString(event["Désignation"]) || "Non spécifié"}</i></p>
+            `;
+
+            container.appendChild(div);
+        });
+}
 
 // ============================
-// CHARGEMENT
+// CHARGEMENT DES DONNÉES
 // ============================
 
 async function loadEvents() {
-    const container = document.getElementById("events");
-    container.innerHTML = "Chargement en cours...";
 
     try {
         const response = await fetch(sheetUrl, { cache: "no-store" });
+        const csv = await response.text();
 
-        if (!response.ok) {
-            throw new Error(`Erreur HTTP ${response.status}`);
-        }
-
-        const csvData = await response.text();
-
-        Papa.parse(csvData, {
+        Papa.parse(csv, {
             header: true,
             skipEmptyLines: true,
-            complete: function (results) {
+            complete: function(results) {
 
-                container.innerHTML = "";
+                allEvents = results.data.map(event => ({
+                    ...event,
+                    parsedDate: parseFrenchDate(event.Début)
+                }));
 
-                if (!results.data || results.data.length === 0) {
-                    container.innerHTML = "Aucun événement trouvé.";
-                    return;
-                }
-
-                const groupedEvents = {};
-
-                results.data.forEach(event => {
-
-                    const startDate = parseFrenchDate(event.Début);
-                    const normalized = normalizeDate(startDate);
-
-                    const groupKey = normalized
-                        ? normalized.getTime()
-                        : "no-date";
-
-                    if (!groupedEvents[groupKey]) {
-                        groupedEvents[groupKey] = {
-                            date: normalized,
-                            events: []
-                        };
-                    }
-
-                    groupedEvents[groupKey].events.push(event);
-                });
-
-                // Trier les groupes par date
-                const sortedGroups = Object.values(groupedEvents)
-                    .sort((a, b) => {
-                        if (!a.date) return 1;
-                        if (!b.date) return -1;
-                        return a.date - b.date;
-                    });
-
-                sortedGroups.forEach(group => {
-
-                    const dateDiv = document.createElement("div");
-                    dateDiv.classList.add("date-group");
-
-                    const title = group.date
-                        ? formatDateOnly(group.date)
-                        : "Date non spécifiée";
-
-                    dateDiv.innerHTML = `<h2>${title}</h2>`;
-                    container.appendChild(dateDiv);
-
-                    // Trier par date de création
-                    group.events.sort((a, b) => {
-                        const da = parseFrenchDate(a["Date de création"]);
-                        const db = parseFrenchDate(b["Date de création"]);
-
-                        return (da?.getTime() || 0) - (db?.getTime() || 0);
-                    });
-
-                    group.events.forEach(event => {
-
-                        const title = cleanString(event.Titre) || "Événement sans titre";
-                        const isBirthday = title.includes("Anniversaire");
-
-                        const eventDiv = document.createElement("div");
-                        eventDiv.classList.add("event");
-
-                        eventDiv.innerHTML = `
-                            <h3 class="${isBirthday ? "red" : ""}">${title}</h3>
-                            <p>🗓️ Début : ${formatDateTime(parseFrenchDate(event.Début))}</p>
-                            <p>🏁 Fin : ${formatDateTime(parseFrenchDate(event.Fin))}</p>
-                            <p>📍 Ville : ${cleanString(event.VILLE) || "Non spécifié"}</p>
-                            <p>${cleanString(event.Lieu) || ""}</p>
-                            ${generateGoogleMapsLink(event.Lieu || event.VILLE)}
-                            <p>${cleanString(event.Description) || "Pas de description disponible."}</p>
-                            <p class="creation-date">
-                                <i>Créé le : ${formatDateTime(parseFrenchDate(event["Date de création"]))}
-                                par ${cleanString(event["Désignation"]) || "Non spécifié"}</i>
-                            </p>
-                        `;
-
-                        dateDiv.appendChild(eventDiv);
-                    });
-                });
-            },
-            error: function (error) {
-                throw new Error("Erreur d'analyse CSV : " + error.message);
+                renderMonth(currentMonth, currentYear);
             }
         });
 
     } catch (error) {
+        document.getElementById("events").innerHTML =
+            "❌ Erreur de chargement des données.";
         console.error(error);
-        container.innerHTML = `
-            <div class="error">
-                ❌ Erreur de chargement<br>
-                <small>${error.message}</small>
-            </div>
-        `;
     }
 }
 
 // ============================
-// INIT
+// NAVIGATION
 // ============================
 
-document.addEventListener("DOMContentLoaded", loadEvents);
+document.addEventListener("DOMContentLoaded", () => {
+
+    loadEvents();
+
+    document.getElementById("prevMonth").addEventListener("click", () => {
+        currentMonth--;
+        if (currentMonth < 0) {
+            currentMonth = 11;
+            currentYear--;
+        }
+        renderMonth(currentMonth, currentYear);
+    });
+
+    document.getElementById("nextMonth").addEventListener("click", () => {
+        currentMonth++;
+        if (currentMonth > 11) {
+            currentMonth = 0;
+            currentYear++;
+        }
+        renderMonth(currentMonth, currentYear);
+    });
+
+});
