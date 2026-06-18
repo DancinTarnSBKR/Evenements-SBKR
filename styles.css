@@ -211,6 +211,33 @@ main {
 }
 
 /* ========================= */
+/* Compteur de visites */
+/* ========================= */
+
+#site-footer {
+    text-align: center;
+    padding: 1.5rem 1rem 2rem;
+    margin-top: 2rem;
+}
+
+.visit-counter {
+    display: inline-block;
+    margin: 0;
+    padding: 6px 14px;
+    font-size: 0.95rem;
+    color: #2c3e50;
+    background-color: #ffffff;
+    border: 1px solid #dadce0;
+    border-radius: 20px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+}
+
+.visit-counter #visit-count {
+    font-weight: bold;
+    color: #27ae60;
+}
+
+/* ========================= */
 /* Responsive */
 /* ========================= */
 
