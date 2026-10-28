@@ -75,7 +75,7 @@ img { max-width: 100%; }
     radial-gradient(100% 120% at 0% 120%, color-mix(in srgb, var(--cat-festival) 42%, transparent), transparent 55%),
     #120d16;
 }
-.hero__inner { padding-block: 24px 26px; }
+.hero__inner { padding-block: 24px 26px; text-align: center; }
 .affiche {
   position: relative; width: 100%; padding-bottom: 75%; height: 0;
   margin: 0 0 22px; border-radius: 14px; overflow: hidden; background: #000;
@@ -92,7 +92,7 @@ img { max-width: 100%; }
   margin: 0; letter-spacing: -.01em; text-wrap: balance;
 }
 .hero h1 b { color: var(--accent); font-weight: 800; }
-.hero .tag { margin: 12px 0 0; max-width: 46ch; color: rgba(255,255,255,.82); }
+.hero .tag { margin: 12px auto 0; max-width: 46ch; color: rgba(255,255,255,.82); }
 .counter {
   display: inline-flex; align-items: center; gap: 8px; margin: 16px 0 0;
   padding: 7px 14px; border-radius: 999px; font-size: .9rem; font-weight: 600;
