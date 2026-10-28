@@ -1,41 +1,36 @@
 // ============================
-// COMPTEUR DE VISITES (CounterAPI v1)
+// COMPTEUR DE VISITES (Abacus)
 // ============================
-// API publique, gratuite, sans clé : https://docs.counterapi.dev/api/endpoints/v1/
-//   - <BASE>/up  -> incrémente le compteur (et le crée s'il n'existe pas)
-//   - <BASE>/    -> lit la valeur sans l'incrémenter
-// La v2 a été écartée volontairement : elle exige un Bearer token, qu'on ne peut
-// pas cacher dans un JS public servi par GitHub Pages.
+// API publique, gratuite, sans clé ni inscription : https://jasoncameron.dev/abacus/
+//   - /hit/<namespace>/<key> -> incrémente le compteur (et le crée s'il n'existe pas)
+//   - /get/<namespace>/<key> -> lit la valeur sans l'incrémenter
+// Réponse JSON : { "value": <nombre> }
+//
+// NB : on utilisait CounterAPI v1 avant, mais ce service a été fermé (erreur 410).
+// Sa v2 exige un token Bearer, impossible à cacher dans un JS public servi par
+// GitHub Pages — d'où le passage à Abacus, qui reste sans clé.
 
 (function () {
     const NAMESPACE = "dancintarn-sbkr";
     const KEY = "visites-site";
-    const BASE = `https://api.counterapi.dev/v1/${NAMESPACE}/${KEY}`;
+    const BASE = "https://abacus.jasoncameron.dev";
 
-    // On ne compte qu'une visite par session : un simple rechargement de page
-    // (F5) relit la valeur sans la gonfler artificiellement.
     const alreadyCounted = sessionStorage.getItem("sbkr_visit_counted") === "1";
-    const url = alreadyCounted ? `${BASE}/` : `${BASE}/up`;
+    const url = alreadyCounted
+        ? `${BASE}/get/${NAMESPACE}/${KEY}`
+        : `${BASE}/hit/${NAMESPACE}/${KEY}`;
 
     fetch(url, { cache: "no-store" })
         .then(res => res.json())
         .then(data => {
-            // En cas d'erreur API, la réponse n'a pas de champ "count" numérique.
-            if (typeof data.count !== "number") return;
-
-            if (!alreadyCounted) {
-                sessionStorage.setItem("sbkr_visit_counted", "1");
-            }
-
+            if (typeof data.value !== "number") return;
+            if (!alreadyCounted) sessionStorage.setItem("sbkr_visit_counted", "1");
             const valueEl = document.getElementById("visit-count");
             const wrapEl = document.getElementById("visit-counter");
             if (valueEl && wrapEl) {
-                valueEl.textContent = data.count.toLocaleString("fr-FR");
-                wrapEl.hidden = false; // on n'affiche le compteur qu'une fois la valeur connue
+                valueEl.textContent = data.value.toLocaleString("fr-FR");
+                wrapEl.hidden = false;
             }
         })
-        .catch(err => {
-            // Réseau coupé / API indisponible : on reste silencieux côté visiteur.
-            console.warn("Compteur de visites indisponible :", err);
-        });
+        .catch(err => console.warn("Compteur de visites indisponible :", err));
 })();
