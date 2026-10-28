@@ -125,16 +125,7 @@ img { max-width: 100%; }
 }
 .month-btn:hover { border-color: color-mix(in srgb, var(--accent) 50%, var(--line)); }
 .month-btn[aria-pressed="true"] { background: var(--ink); color: var(--bg); border-color: var(--ink); }
-.filters { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
-.chip {
-  border: 1px solid var(--line); background: var(--surface); color: var(--muted);
-  font-family: inherit; font-size: .8rem; font-weight: 600; padding: 5px 11px;
-  border-radius: 999px; cursor: pointer; display: inline-flex; align-items: center; gap: 6px;
-}
-.chip .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--c, var(--muted)); }
-.chip[aria-pressed="true"] { color: var(--ink); border-color: color-mix(in srgb, var(--c, var(--ink)) 55%, var(--line)); background: color-mix(in srgb, var(--c, var(--ink)) 10%, var(--surface)); }
-.chip[aria-pressed="false"] { opacity: .5; }
-.summary { margin-left: auto; font-size: .82rem; color: var(--muted); font-weight: 600; }
+.summary { margin: 2px 0 0; align-self: flex-end; font-size: .82rem; color: var(--muted); font-weight: 600; }
 
 /* ---------- Agenda ---------- */
 main { padding-block: 18px 48px; min-height: 40vh; }

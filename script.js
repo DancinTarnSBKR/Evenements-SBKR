@@ -22,7 +22,6 @@ const TODAY = new Date(); TODAY.setHours(0, 0, 0, 0);
 
 let EVENTS = [];
 let curMonth = null;                 // "année-mois" ex. "2026-9"
-const active = new Set(TYPES);       // types affichés
 
 // ---------- Outils ----------
 function cleanString(s) { return typeof s === "string" ? s.trim() : ""; }
@@ -94,30 +93,6 @@ function renderMonths() {
   if (activeBtn) activeBtn.scrollIntoView({ inline: "center", block: "nearest" });
 }
 
-function renderFilters() {
-  const box = document.getElementById("filters");
-  box.innerHTML = "";
-  TYPES.forEach(t => {
-    if (!EVENTS.some(e => e.type === t)) return;
-    const b = document.createElement("button");
-    b.className = "chip";
-    b.dataset.type = t;
-    b.style.setProperty("--c", "var(" + CATVAR[t] + ")");
-    b.setAttribute("aria-pressed", active.has(t));
-    b.innerHTML = '<span class="dot"></span>' + t;
-    b.onclick = () => {
-      active.has(t) ? active.delete(t) : active.add(t);
-      if (active.size === 0) TYPES.forEach(x => active.add(x));
-      box.querySelectorAll(".chip").forEach(c => c.setAttribute("aria-pressed", active.has(c.dataset.type)));
-      render();
-    };
-    box.appendChild(b);
-  });
-  const sum = document.createElement("span");
-  sum.className = "summary"; sum.id = "summary";
-  box.appendChild(sum);
-}
-
 function card(e) {
   const art = document.createElement("article");
   art.className = "ev";
@@ -154,7 +129,7 @@ function card(e) {
 function render() {
   renderMonths();
   const [y, m] = curMonth.split("-").map(Number);
-  const list = EVENTS.filter(e => e.debut.getFullYear() === y && e.debut.getMonth() === m && active.has(e.type));
+  const list = EVENTS.filter(e => e.debut.getFullYear() === y && e.debut.getMonth() === m);
 
   const sumEl = document.getElementById("summary");
   if (sumEl) sumEl.textContent = list.length + (list.length > 1 ? " événements" : " événement");
@@ -222,7 +197,6 @@ function loadEvents() {
             ? curKey
             : (keys.find(k => monthIndex(k) >= monthIndex(curKey)) || keys[keys.length - 1]);
 
-          renderFilters();
           render();
         }
       });
